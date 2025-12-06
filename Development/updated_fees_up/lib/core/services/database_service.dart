@@ -2,9 +2,6 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-
-// 🛑 KEY CHANGE 1: Only import sqflite_sqlcipher. 
-// Do NOT import standard 'sqflite' here, or they will conflict.
 import 'package:sqflite_sqlcipher/sqflite.dart'; 
 import 'package:updated_fees_up/core/models/bill.dart';
 import 'package:updated_fees_up/core/models/notification_item.dart';
