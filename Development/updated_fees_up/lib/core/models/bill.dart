@@ -1,5 +1,8 @@
 import 'dart:math';
 
+// 🛑 ADDED: The missing Enum
+enum BillStatus { paid, partial, overdue, unpaid }
+
 // Enum matching Postgres type 'cycle_interval'
 enum CycleInterval { monthly, termly, yearly, custom }
 
@@ -13,10 +16,8 @@ class Bill {
   final CycleInterval cycleInterval;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final String? adminUid; // Nullable
-
-  // Generated Column (Read-Only)
-  final DateTime? billingCycleEnd;
+  final String? adminUid; 
+  final DateTime? billingCycleEnd; 
 
   Bill({
     required this.id,
@@ -32,8 +33,25 @@ class Bill {
     this.billingCycleEnd,
   });
 
-  // Computed Status (Business Logic)
-  bool get isPaid => paidAmount >= (totalAmount - 0.01);
+  // 🛑 ADDED: The Missing Logic
+  BillStatus get status {
+    // 1. Paid Check (with small float tolerance)
+    if (paidAmount >= (totalAmount - 0.01)) return BillStatus.paid;
+    
+    // 2. Partial Check
+    if (paidAmount > 0) return BillStatus.partial;
+
+    // 3. Overdue Check
+    // Logic: If today is after the cycle start + 30 days, it's overdue.
+    // (You can adjust this duration to match your business rules)
+    final dueDate = billingCycleStart.add(const Duration(days: 30));
+    if (DateTime.now().isAfter(dueDate)) return BillStatus.overdue;
+
+    // 4. Default
+    return BillStatus.unpaid;
+  }
+
+  bool get isPaid => status == BillStatus.paid;
   double get outstandingBalance => max(0.0, totalAmount - paidAmount);
 
   factory Bill.fromRow(Map<String, dynamic> row) {
@@ -48,8 +66,8 @@ class Bill {
       createdAt: DateTime.tryParse(row['created_at'] ?? '') ?? DateTime.now(),
       updatedAt: DateTime.tryParse(row['updated_at'] ?? '') ?? DateTime.now(),
       adminUid: row['admin_uid'] as String?,
-      billingCycleEnd: row['billing_cycle_end'] != null
-          ? DateTime.tryParse(row['billing_cycle_end'])
+      billingCycleEnd: row['billing_cycle_end'] != null 
+          ? DateTime.tryParse(row['billing_cycle_end']) 
           : null,
     );
   }
@@ -62,11 +80,10 @@ class Bill {
       'paid_amount': paidAmount,
       'month_year': monthYear.toIso8601String(),
       'billing_cycle_start': billingCycleStart.toIso8601String(),
-      'cycle_interval': cycleInterval.name, // Saves as 'monthly' etc.
+      'cycle_interval': cycleInterval.name,
       'created_at': createdAt.toIso8601String(),
       'updated_at': DateTime.now().toIso8601String(),
       'admin_uid': adminUid,
-      // billing_cycle_end is GENERATED ALWAYS, so we don't insert it
     };
   }
 
