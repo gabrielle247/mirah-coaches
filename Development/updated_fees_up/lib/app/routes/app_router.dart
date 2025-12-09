@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:updated_fees_up/ui/pages/dashboard_page.dart';
+import 'package:updated_fees_up/ui/pages/register_student_page.dart';
 
 // View Models (For Scoped Injection)
 // import 'package:fees_up/logic/view_models/student_ledger_view_model.dart';
@@ -26,7 +27,7 @@ final GoRouter mobileRouter = GoRouter(
         // 2. Register Student
         GoRoute(
           path: 'addStudent',
-          builder: (context, state) => const Text("Register Student"),//RegisterStudentPage(),
+          builder: (context, state) => RegisterStudentPage(),
         ),
     //     // 3. Search
     //     GoRoute(

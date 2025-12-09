@@ -1,10 +1,17 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-// 🛑 ENCRYPTION: Only use this import for the database factory
-import 'package:sqflite_sqlcipher/sqflite.dart'; 
+
+// 🛑 DRIVER IMPORTS
+// 1. For Linux/Windows (Standard SQLite)
+import 'package:sqflite_common_ffi/sqflite_ffi.dart' as ffi;
+// 2. For Android/iOS (Encrypted SQLite)
+import 'package:sqflite_sqlcipher/sqflite.dart' as cipher;
+// 3. Common Interface
+import 'package:sqflite_common/sqlite_api.dart'; 
 
 // Models
 import 'package:updated_fees_up/core/models/student.dart';
@@ -20,10 +27,10 @@ class DatabaseService {
 
   Database? _db;
 
-  // 🔐 SECURITY: The key to lock the file.
+  // 🔐 SECURITY: The key to lock the file (Mobile Only).
   final String _dbPassword = "StartUp_Greyway_Secure_Key_2025!"; 
   
-  // 🔒 Concurrency Lock for Batch Operations
+  // 🔒 Concurrency Lock
   Completer<void>? _writeLock;
 
   Future<Database> get database async {
@@ -36,18 +43,39 @@ class DatabaseService {
     final docs = await getApplicationDocumentsDirectory();
     final dbPath = join(docs.path, 'fees_up_core.db');
 
-    // 🛑 ENCRYPTION HAPPENS HERE
-    _db = await openDatabase(
-      dbPath,
-      version: 1,
-      password: _dbPassword, // <--- THIS ENCRYPTS THE FILE
-      onConfigure: (db) async {
-        await db.execute('PRAGMA foreign_keys = ON');
-      },
-      onCreate: (db, version) async {
-        await _createTables(db);
-      },
-    );
+    // 🧠 PLATFORM CHECK
+    if (!kIsWeb && (Platform.isLinux || Platform.isWindows || Platform.isMacOS)) {
+      debugPrint("💻 Desktop Detected: Running in Plain Text Mode (Dev)");
+      
+      // Initialize FFI loader
+      ffi.sqfliteFfiInit();
+      
+      // Use standard FFI factory (No Encryption Support)
+      _db = await ffi.databaseFactoryFfi.openDatabase(
+        dbPath,
+        options: OpenDatabaseOptions(
+          version: 1,
+          onConfigure: _onConfigure,
+          onCreate: (db, version) async => await _createTables(db),
+        ),
+      );
+    } else {
+      debugPrint("📱 Mobile Detected: Running in Encrypted Mode");
+      
+      // Use SQLCipher factory (With Encryption)
+      _db = await cipher.openDatabase(
+        dbPath,
+        version: 1,
+        password: _dbPassword, // 🔒 Encrypts on Mobile
+        onConfigure: _onConfigure,
+        onCreate: (db, version) async => await _createTables(db),
+      );
+    }
+  }
+
+  // Shared Configuration
+  Future<void> _onConfigure(Database db) async {
+    await db.execute('PRAGMA foreign_keys = ON');
   }
 
   Future<void> _createTables(Database db) async {
@@ -132,7 +160,7 @@ class DatabaseService {
       )
     ''');
     
-    debugPrint("✅ Database Encrypted & Tables Created");
+    debugPrint("✅ Database Ready (Tables Created/Checked)");
   }
 
   // ---------------------------------------------------------------------------
@@ -161,7 +189,7 @@ class DatabaseService {
       final uniqueId = "STU-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}";
       
       final newStudent = Student(
-        id: 0, // Auto-increment handles this
+        id: 0, 
         studentId: uniqueId,
         studentName: fullName,
         grade: grade,
@@ -185,8 +213,6 @@ class DatabaseService {
   }
 
   // --- BILLS ---
-  
-  // 🛑 ADDED: Required by DashboardViewModel
   Future<List<Bill>> getAllBills() async {
     final db = await database;
     final rows = await db.query('bills', orderBy: 'created_at DESC');
@@ -206,16 +232,10 @@ class DatabaseService {
 
   Future<void> saveBill(Bill bill) async {
     final db = await database;
-    await db.insert(
-      'bills', 
-      bill.toRow(), 
-      conflictAlgorithm: ConflictAlgorithm.replace
-    );
+    await db.insert('bills', bill.toRow(), conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   // --- PAYMENTS ---
-
-  // 🛑 ADDED: Required by DashboardViewModel
   Future<List<Payment>> getAllPayments() async {
     final db = await database;
     final rows = await db.query('payments', orderBy: 'date_paid DESC');
@@ -236,14 +256,8 @@ class DatabaseService {
   Future<void> savePayment(Payment payment) async {
     final db = await database;
     await db.transaction((txn) async {
-      // 1. Insert Payment
-      await txn.insert(
-        'payments', 
-        payment.toRow(), 
-        conflictAlgorithm: ConflictAlgorithm.replace
-      );
-
-      // 2. Update Bill (Paid Amount)
+      await txn.insert('payments', payment.toRow(), conflictAlgorithm: ConflictAlgorithm.replace);
+      
       final billRows = await txn.query('bills', where: 'id = ?', whereArgs: [payment.billId]);
       if (billRows.isNotEmpty) {
         final bill = Bill.fromRow(billRows.first);
@@ -278,12 +292,10 @@ class DatabaseService {
   // ---------------------------------------------------------------------------
 
   Future<int> ensureBillsForAllStudents() async {
-    // 🔒 Lock to prevent double-generation race conditions
     while (_writeLock != null) {
       await _writeLock!.future;
     }
     _writeLock = Completer<void>();
-
     int billsGenerated = 0;
 
     try {
@@ -291,62 +303,42 @@ class DatabaseService {
       final students = await getAllStudents();
       final now = DateTime.now();
       
-      // 1. Context: Get Active Term (for Termly students)
-      final activeTerms = await getActiveTerms();
-      final currentTerm = activeTerms.isNotEmpty ? activeTerms.first : null;
-
-      // 2. Context: Monthly Keys
       final currentMonthStart = DateTime(now.year, now.month, 1);
       final currentYearStart = DateTime(now.year, 1, 1);
+      final activeTerms = await getActiveTerms();
+      final currentTerm = activeTerms.isNotEmpty ? activeTerms.first : null;
 
       for (var student in students) {
         if (!student.isActive) continue;
 
         bool shouldGenerate = false;
         DateTime? billDate;
-        // DateTime? dueDate; // Unused in this simplified logic, can be re-enabled if needed
         CycleInterval interval = CycleInterval.monthly;
 
-        // 🧠 LOGIC SWITCH: Check Billing Mode
         switch (student.billingMode) {
-          
-          // CASE A: MONTHLY
           case 'monthly':
-            final hasBill = await _checkForBill(db, student.studentId, currentMonthStart);
-            if (!hasBill) {
+            if (!(await _checkForBill(db, student.studentId, currentMonthStart))) {
               shouldGenerate = true;
               billDate = currentMonthStart;
               interval = CycleInterval.monthly;
             }
             break;
-
-          // CASE B: TERMLY
           case 'termly':
-            if (currentTerm != null) {
-              final hasBill = await _checkForBill(db, student.studentId, currentTerm.startDate);
-              if (!hasBill) {
-                shouldGenerate = true;
-                billDate = currentTerm.startDate;
-                interval = CycleInterval.termly;
-              }
+            if (currentTerm != null && !(await _checkForBill(db, student.studentId, currentTerm.startDate))) {
+              shouldGenerate = true;
+              billDate = currentTerm.startDate;
+              interval = CycleInterval.termly;
             }
             break;
-
-          // CASE C: YEARLY
           case 'yearly':
-            final hasBill = await _checkForBill(db, student.studentId, currentYearStart);
-            if (!hasBill) {
+            if (!(await _checkForBill(db, student.studentId, currentYearStart))) {
               shouldGenerate = true;
               billDate = currentYearStart;
               interval = CycleInterval.yearly;
             }
             break;
-
-          case 'custom':
-            break;
         }
 
-        // 🚀 EXECUTE GENERATION
         if (shouldGenerate && billDate != null) {
           final newBill = Bill(
             id: "BILL-${DateTime.now().millisecondsSinceEpoch}-${Random().nextInt(999)}",
@@ -363,21 +355,18 @@ class DatabaseService {
 
           await saveBill(newBill);
           billsGenerated++;
-          debugPrint("✅ Auto-Bill Generated: ${student.studentName} (${interval.name})");
         }
       }
     } catch (e) {
-      debugPrint("❌ Automation Error: $e");
+      debugPrint("Auto-Bill Error: $e");
     } finally {
       final c = _writeLock;
       _writeLock = null;
       c?.complete();
     }
-    
     return billsGenerated;
   }
 
-  // 🛑 ADDED: Helper method required by ensureBillsForAllStudents
   Future<bool> _checkForBill(Database db, String studentId, DateTime cycleStart) async {
     final startStr = cycleStart.toIso8601String();
     final result = await db.query(
@@ -388,7 +377,6 @@ class DatabaseService {
     return result.isNotEmpty;
   }
 
-  // 🛠 MAINTENANCE
   Future<void> wipeAllData() async {
     final db = await database;
     await db.delete('students');
@@ -396,6 +384,5 @@ class DatabaseService {
     await db.delete('payments');
     await db.delete('notifications');
     await db.delete('school_terms');
-    debugPrint("⚠️ ALL DATA WIPED");
   }
 }

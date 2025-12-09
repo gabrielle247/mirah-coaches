@@ -1,14 +1,24 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:updated_fees_up/app/app_providers.dart';
 import 'package:updated_fees_up/app/routes/app_router.dart';
 import 'package:updated_fees_up/core/services/database_service.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 🔐 Initialize the Secure Offline Database
-  await DatabaseService().init();
+  if (!kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.linux ||
+          defaultTargetPlatform == TargetPlatform.windows ||
+          defaultTargetPlatform == TargetPlatform.macOS)) {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  }
+
+  final dbService = DatabaseService();
+  await dbService.init();
 
   runApp(const FeesUpApp());
 }

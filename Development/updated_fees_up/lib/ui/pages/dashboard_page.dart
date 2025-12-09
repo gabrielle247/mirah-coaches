@@ -223,7 +223,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 SliverFillRemaining(
                   hasScrollBody: false,
                   child: Padding(
-                    padding: const EdgeInsets.all(32),
+                    padding: const EdgeInsets.all(16.0),
                     child: EmptyListWidget(
                       () => context.push("/addStudent"),
                       "No students found",

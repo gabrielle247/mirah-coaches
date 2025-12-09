@@ -17,30 +17,41 @@ class AppDrawer extends StatelessWidget {
     if (context.mounted && Navigator.of(context).canPop()) {
       context.pop();
     }
-    
+
     // 2. Show the confirmation dialog
     final bool? confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF1E2B36), // Dark Card Color
-        title: const Text("Confirm Exit", style: TextStyle(color: Colors.white)),
+        title: const Text(
+          "Confirm Exit",
+          style: TextStyle(color: Colors.white),
+        ),
         content: const Text(
-          "Are you sure you want to lock the console?", 
-          style: TextStyle(color: Colors.white70)
+          "Are you sure you want to lock the console?",
+          style: TextStyle(color: Colors.white70),
         ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text("Cancel", style: TextStyle(color: Colors.grey.shade400)),
+            child: Text(
+              "Cancel",
+              style: TextStyle(color: Colors.grey.shade400),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFEB5757), // Red Accent
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text("Lock App", style: TextStyle(color: Colors.white)),
+            child: const Text(
+              "Lock App",
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -50,11 +61,11 @@ class AppDrawer extends StatelessWidget {
     if (confirm == true && context.mounted) {
       // Navigate to Login (or Exit)
       // Since we don't have Auth middleware anymore, we just push to login
-      context.go('/login'); 
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Console Locked.")),
-      );
+      context.go('/login');
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Console Locked.")));
     }
   }
 
@@ -87,7 +98,11 @@ class AppDrawer extends StatelessWidget {
                   backgroundColor: const Color(0xFF2F80ED),
                   child: const Text(
                     "A",
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -97,7 +112,11 @@ class AppDrawer extends StatelessWidget {
                     children: [
                       Text(
                         "Administrator",
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
                       ),
                       Text(
                         "Fees Up Admin",
@@ -109,7 +128,7 @@ class AppDrawer extends StatelessWidget {
               ],
             ),
           ),
-          
+
           // ──────────────────────────────────────────────
           // 2. MENU ITEMS
           // ──────────────────────────────────────────────
@@ -161,11 +180,14 @@ class AppDrawer extends StatelessWidget {
                           ? Icons.notifications_active_rounded
                           : Icons.notifications_rounded,
                       title: "Notifications",
-                      
+
                       // Badge Widget
                       trailing: notifVM.hasNotifications
                           ? Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFEB5757),
                                 borderRadius: BorderRadius.circular(10),
@@ -214,7 +236,9 @@ class AppDrawer extends StatelessWidget {
                   onTap: () {
                     context.pop();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("PDF Export coming in next update.")),
+                      const SnackBar(
+                        content: Text("PDF Export coming in next update."),
+                      ),
                     );
                   },
                 ),
@@ -240,9 +264,9 @@ class AppDrawer extends StatelessWidget {
                     context.push('/profile'); // Route to AdminProfilePage
                   },
                 ),
-                
-                const SizedBox(height: 8), 
-                
+
+                const SizedBox(height: 8),
+
                 // LOGOUT / LOCK
                 _DrawerTile(
                   icon: Icons.lock_outline_rounded,
@@ -320,7 +344,9 @@ class _DrawerTile extends StatelessWidget {
                     Text(
                       title,
                       style: TextStyle(
-                        fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                        fontWeight: isActive
+                            ? FontWeight.w600
+                            : FontWeight.normal,
                         color: isActive ? Colors.white : Colors.grey.shade300,
                         fontSize: 14,
                       ),
