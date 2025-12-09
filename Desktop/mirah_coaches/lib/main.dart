@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // Riverpod All The Way
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'utils/theme.dart';
 import 'utils/routes.dart';
@@ -8,7 +11,13 @@ import 'utils/routes.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    // Initialize FFI
+    sqfliteFfiInit();
+    // Change the default factory
+    databaseFactory = databaseFactoryFfi;
+  }
   runApp(
     // 1. ProviderScope: The single source of truth for the entire app
     const ProviderScope(

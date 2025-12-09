@@ -1,0 +1,1697 @@
+
+
+import 'package:go_router/go_router.dart';
+
+GoRouter allRoutes (){
+  return GoRouter(routes: [
+    
+  ]);
+}import 'package:flutter/material.dart';
+import 'package:mirah_coaches/provider/provider.dart';
+
+
+Future<void> main() async {
+  runApp(multiProvider());
+}
+
+
+//DashboardTab
+
+import 'package:flutter/material.dart';
+import 'package:mirah_coaches/pages/home_page.dart';
+import 'package:mirah_coaches/utils/receipt_item.dart';
+import 'package:mirah_coaches/utils/testing_data/testing_data.dart';
+import 'package:mirah_coaches/utils/ticket_widget.dart';
+
+class DashboardTab extends StatelessWidget {
+  const DashboardTab({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    List<Ticket> allTickets = testingData();
+    return CustomScrollView(
+      slivers: [
+        //Cards,
+        SliverToBoxAdapter(
+          // ignore: sized_box_for_whitespace
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: cartView(
+                      [Color(0xff2196f3), Color(0xff003366)],
+                      value: "200",
+                      title: "Passengers",
+                    ),
+                  ),
+                  Expanded(
+                    child: cartView(
+                      [Color(0xff28a745), Color.fromARGB(255, 15, 64, 26)],
+                      title: "Obboard",
+                      value: "170",
+                    ),
+                  ),
+                ],
+              ),
+
+              //Recent Passengers Text()
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  "Recently Added Passengers",
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        //List Widget
+        SliverList(
+          delegate: SliverChildBuilderDelegate((context, index) {
+            final ticket = allTickets[index];
+            return TicketCard(ticket: ticket);
+          }, childCount: allTickets.length),
+        ),
+      ],
+    );
+  }
+}
+
+Widget cartView(List<Color> color, {required title, required String value}) {
+  return Container(
+    height: 110,
+    padding: EdgeInsets.all(16),
+    decoration: allGradientBoxes(color: color, radius: 0),
+    child: Column(
+      children: [
+        Text(value, style: textStyleTitle),
+        Text(title, style: textStyle),
+      ],
+    ),
+  );
+}
+import 'package:flutter/material.dart';
+
+class Ticket {
+  final int id;
+  final String routeFrom;
+  final String routeTo;
+  final String ticketID; //TKT-000-000-00
+  final double amount;
+  final String passengerName;
+  final List<String> charges; //Bus Fare, Lagguage, Extra Ticket
+
+  Ticket({
+    required this.id,
+    required this.routeFrom,
+    required this.routeTo,
+    required this.ticketID,
+    required this.amount,
+    required this.passengerName,
+    required this.charges,
+  });
+}
+
+class TicketWidget extends StatelessWidget {
+  const TicketWidget({super.key, required this.ticket});
+  final Ticket ticket;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.blue.shade300, Colors.blue.shade600],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "${ticket.routeFrom} - ${ticket.routeTo}",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  ticket.passengerName,
+                  style: TextStyle(fontSize: 16, color: Colors.white70),
+                ),
+                SizedBox(height: 8),
+                Row(
+                  children: [
+                    Text(
+                      "Total amount ",
+                      style: TextStyle(fontSize: 16, color: Colors.white),
+                    ),
+                    Text(
+                      "\$${ticket.amount}",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.person, size: 40, color: Colors.black),
+              SizedBox(height: 8),
+              Text(
+                "Ticket no : $ticket.id",
+                style: TextStyle(fontSize: 14, color: Colors.white),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+import 'package:flutter/material.dart';
+
+class NormalTextField extends StatefulWidget {
+  const NormalTextField({super.key, required this.title, required this.hint});
+  final String title;
+  final String hint;
+
+  @override
+  State<NormalTextField> createState() => _NormalTextFieldState();
+}
+
+class _NormalTextFieldState extends State<NormalTextField> {
+  @override
+  Widget build(BuildContext context) {
+    var title = const TextStyle(fontSize: 18.0, fontWeight: FontWeight.w500);
+    var subTitle = const TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500);
+
+    return Column(
+      children: [
+        Text("Academic Information", style: title),
+        const SizedBox(height: 16.0),
+        Text("Subjects", style: subTitle),
+        const TextField(
+          decoration: InputDecoration.collapsed(hintText: 'Enter text here'),
+        ),
+      ],
+      //
+    );
+  }
+}
+import 'package:flutter/material.dart';
+import 'package:mirah_coaches/pages/home_page.dart';
+import 'package:mirah_coaches/utils/ticket_widget.dart';
+
+class TicketCard extends StatelessWidget {
+  final Ticket ticket;
+
+  const TicketCard({super.key, required this.ticket});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      padding: const EdgeInsets.all(16.0),
+      decoration: allGradientBoxes(
+        color: [Color(0xffcadbef), Color(0xff1188fe)],
+        radius: 12.0,
+      ),
+      child: Row(
+        children: [
+          // 1. The Icon Circle
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              // Slightly lighter blue for the circle background
+              color: const Color(0xFF1A273B),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.confirmation_number_outlined, // Or CupertinoIcons.ticket
+              color: Color(0xFF2196F3), // Bright blue icon color
+              size: 24,
+            ),
+          ),
+
+          const SizedBox(width: 16),
+
+          // 2. The Ticket Details (Middle)
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "${ticket.routeFrom} - ${ticket.routeTo}",
+                  style: const TextStyle(
+                    color: Color(0xFF1A273B),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                Text(
+                  ticket.passengerName.isEmpty
+                      ? "Anonymous"
+                      : ticket.passengerName,
+                  style: TextStyle(
+                    // Greyish-blue text for subtitle
+                    color: const Color(0xFF1A273B),
+                    fontSize: 16,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "Ticket #${ticket.id}",
+                  style: TextStyle(
+                    // Greyish-blue text for subtitle
+                    color: const Color(0xFF1A273B),
+                    fontSize: 13,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+
+          // 3. The Price (Right)
+          Text(
+            "\$${ticket.amount.toStringAsFixed(2)}",
+            style: const TextStyle(
+              color: Color(0xFF1A273B),
+              fontWeight: FontWeight.bold,
+              fontSize: 24,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class PaymentItem extends StatelessWidget {
+  const PaymentItem({super.key, required this.expenses} );
+
+  final Expenses expenses;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+      padding: const EdgeInsets.all(16.0),
+      decoration: allGradientBoxes(
+        color: [Color(0xffcadbef), Color(0xff1188fe)],
+        radius: 12.0,
+      ),
+      child: Row(
+        children: [
+
+          // 2. The Ticket Details (Middle)
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  expenses.name,
+                  style: const TextStyle(
+                    color: Color(0xFF1A273B),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+
+                Text(
+                  "No.${expenses.expenseNumber}",
+                  style: const TextStyle(
+                    color: Color(0xFF1A273B),
+                    fontWeight: FontWeight.normal,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // 3. The Price (Right)
+          Text(
+            "\$${expenses.totalAmount.toStringAsFixed(2)}",
+            style: const TextStyle(
+              color: Color(0xFF1A273B),
+              fontWeight: FontWeight.bold,
+              fontSize: 24,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+class Validators {
+  // 1. STRICT MONEY VALIDATION ($0.50 - $500.00)
+  static String? validateMoney(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Amount is required';
+    }
+
+    // Check format (allows 10, 10.5, 10.50)
+    final validMoneyRegex = RegExp(r'^\d*\.?\d+$');
+    if (!validMoneyRegex.hasMatch(value)) {
+      return 'Invalid format (e.g. 10.50)';
+    }
+
+    final number = double.tryParse(value);
+    if (number == null) {
+      return 'Invalid number';
+    }
+
+    // ✅ FLOOR CHECK
+    if (number < 0.50) {
+      return 'Minimum amount is \$0.50';
+    }
+
+    // ✅ CEILING CHECK (Prevents anomalies/typos)
+    if (number > 500.00) {
+      return 'Maximum amount is \$500.00';
+    }
+
+    return null;
+  }
+
+  // 2. OPTIONAL MONEY VALIDATION (For fields that can be 0 or empty)
+  // Useful for "Initial Payment" during registration
+  static String? validateOptionalMoney(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return null; // Empty is valid (treated as 0)
+    }
+
+    final number = double.tryParse(value);
+    if (number == null) return 'Invalid number';
+
+    // If they type something, it must follow rules,
+    // BUT 0.00 is allowed here.
+    if (number == 0) return null;
+
+    // Otherwise enforce limits
+    if (number < 0.50) return 'Min is \$0.50 (or 0)';
+    if (number > 500.00) return 'Max is \$500.00';
+
+    return null;
+  }
+
+  // 3. NAME VALIDATION
+  static String? validateName(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Name is required';
+    }
+    if (value.length < 2) {
+      return 'Name is too short';
+    }
+    return null;
+  }
+
+  // 4. PHONE VALIDATION
+  static String? validatePhone(String? value) {
+    if (value == null || value.trim().isEmpty) return null;
+
+    final cleanValue = value.replaceAll(RegExp(r'[\s\-\(\)]'), '');
+    final phoneRegex = RegExp(r'^\+?[0-9]{9,15}$');
+
+    if (!phoneRegex.hasMatch(cleanValue)) {
+      return 'Enter a valid phone number';
+    }
+    return null;
+  }
+}
+    // import 'package:flutter/material.dart';
+    // import 'package:provider/provider.dart';
+    // import 'package:intl/intl.dart'; 
+
+    // // Imports
+    // import '../view_models/logging_payments_view_model.dart';
+    // import '../models/finance.dart'; // Using the NEW Bill model
+
+    // class UnpaidChargesList extends StatefulWidget {
+    //   const UnpaidChargesList({super.key});
+
+    //   @override
+    //   State<UnpaidChargesList> createState() => _UnpaidChargesListState();
+    // }
+
+    // class _UnpaidChargesListState extends State<UnpaidChargesList> {
+      
+    //   @override
+    //   void initState() {
+    //     super.initState();
+    //     // Trigger data load when widget mounts
+    //     WidgetsBinding.instance.addPostFrameCallback((_) {
+    //       if (mounted) {
+    //         // RENAMED: The VM method is now loadData() in the new architecture
+    //         context.read<LoggingPaymentsViewModel>().loadData();
+    //       }
+    //     });
+    //   }
+
+    //   @override
+    //   Widget build(BuildContext context) {
+    //     return Consumer<LoggingPaymentsViewModel>(
+    //       builder: (context, vm, child) {
+            
+    //         if (vm.isLoading) {
+    //           return const Center(
+    //             child: Padding(
+    //               padding: EdgeInsets.all(20.0),
+    //               child: LinearProgressIndicator(),
+    //             ),
+    //           );
+    //         }
+
+    //         if (vm.unpaidBills.isEmpty) {
+    //           return Padding(
+    //             padding: const EdgeInsets.all(16.0),
+    //             child: Row(
+    //               mainAxisAlignment: MainAxisAlignment.center,
+    //               children: [
+    //                 Icon(Icons.check_circle_outline, color: Theme.of(context).colorScheme.secondary),
+    //                 const SizedBox(width: 8),
+    //                 const Text("No unpaid bills found.", style: TextStyle(color: Colors.grey)),
+    //               ],
+    //             ),
+    //           );
+    //         }
+
+    //         return ListView.separated(
+    //           shrinkWrap: true, 
+    //           physics: const NeverScrollableScrollPhysics(),
+    //           itemCount: vm.unpaidBills.length,
+              
+    //           separatorBuilder: (context, index) => Divider(
+    //             height: 1, 
+    //             color: Theme.of(context).colorScheme.tertiary.withAlpha(30), 
+    //             indent: 16,
+    //             endIndent: 16,
+    //           ),
+              
+    //           itemBuilder: (context, index) {
+    //             final Bill bill = vm.unpaidBills[index];
+                
+    //             // LOGIC: Top item is always the one being paid next
+    //             final bool isNextUp = index == 0; 
+
+    //             return ListTile(
+    //               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  
+    //               // Visual cue: The top bill is highlighted
+    //               leading: Icon(
+    //                 Icons.priority_high_rounded, 
+    //                 size: 18,
+    //                 color: isNextUp ? Colors.orangeAccent : Colors.transparent
+    //               ),
+
+    //               title: Text(
+    //                 DateFormat('MMMM yyyy').format(bill.monthYear),
+    //                 style: TextStyle(
+    //                   color: Colors.white,
+    //                   fontWeight: isNextUp ? FontWeight.bold : FontWeight.normal,
+    //                   fontSize: 14,
+    //                 ),
+    //               ),
+                  
+    //               subtitle: Text(
+    //                 vm.getStatusLabel(bill), // Helper from VM
+    //                 style: TextStyle(
+    //                   color: Colors.grey.shade400,
+    //                   fontSize: 12
+    //                 ),
+    //               ),
+
+    //               trailing: Text(
+    //                 "\$${bill.outstandingBalance.toStringAsFixed(2)}",
+    //                 style: TextStyle(
+    //                   color: isNextUp 
+    //                       ? Theme.of(context).colorScheme.error 
+    //                       : Colors.grey, // Older bills fade slightly
+    //                   fontWeight: FontWeight.bold,
+    //                   fontSize: 16,
+    //                 ),
+    //               ),
+    //             );
+    //           },
+    //         );
+    //       },
+    //     );
+    //   }
+    // }import 'package:flutter/material.dart';
+
+class DashboardStats extends StatelessWidget {
+  const DashboardStats({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    // Use standard text themes for consistency
+    final labelStyle = Theme.of(context).textTheme.labelLarge?.copyWith(
+          color: Theme.of(context).colorScheme.secondary, // Use your Brand Red or Grey
+        );
+    final valueStyle = Theme.of(context).textTheme.headlineSmall?.copyWith(
+          fontWeight: FontWeight.bold,
+          color: Theme.of(context).colorScheme.primary, // Use your Brand Blue
+        );
+    return IntrinsicHeight( // Ensures both boxes stretch to the same height
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch, 
+        children: [
+          // 1. Route Card
+          _buildStatCard(
+            context,
+            label: "Current Route",
+            labelStyle: labelStyle,
+            content: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Harare", style: valueStyle),
+                Icon(Icons.arrow_downward, size: 16, color: Colors.grey), // Visual cue
+                Text("Bulawayo", style: valueStyle),
+              ],
+            ),
+          ),
+
+          const SizedBox(width: 16),
+
+          // 2. Passenger Count Card
+          _buildStatCard(
+            context,
+            label: "Onboard",
+            labelStyle: labelStyle,
+            content: Text("152", style: valueStyle?.copyWith(fontSize: 32)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- The Reusable Widget ---
+  Widget _buildStatCard(
+    BuildContext context, {
+    required String label,
+    required Widget content,
+    TextStyle? labelStyle,
+  }) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface, // Light grey background
+          border: Border.all(
+            // Use outlineVariant for subtle borders (Material 3 standard)
+            color: Theme.of(context).colorScheme.outlineVariant, 
+          ),
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween, // Spaces label and content
+          children: [
+            Text(label.toUpperCase(), style: labelStyle),
+            const SizedBox(height: 8),
+            content,
+          ],
+        ),
+      ),
+    );
+  }
+}import 'package:mirah_coaches/pages/home_page.dart';
+import 'package:mirah_coaches/utils/ticket_widget.dart';
+
+List<Ticket> testingData() {
+  return [
+    Ticket(
+      id: 1,
+      routeFrom: "Harare",
+      routeTo: "Masvingo",
+      ticketID: "TKT-001-000-01",
+      amount: 5.00,
+      passengerName: "Tawanda Mutodza",
+      charges: ["Bus Fare"],
+    ),
+    Ticket(
+      id: 2,
+      routeFrom: "Masvingo",
+      routeTo: "Beitbridge",
+      ticketID: "TKT-001-000-02",
+      amount: 10.00,
+      passengerName: "Sipho Ndlovu",
+      charges: ["Bus Fare", "Luggage"],
+    ),
+    Ticket(
+      id: 3,
+      routeFrom: "Beitbridge",
+      routeTo: "Johannesburg",
+      ticketID: "TKT-001-000-03",
+      amount: 50.00,
+      passengerName: "John Kwezi",
+      charges: ["Bus Fare"],
+    ),
+    Ticket(
+      id: 4,
+      routeFrom: "Johannesburg",
+      routeTo: "Port Elizabeth",
+      ticketID: "TKT-001-000-04",
+      amount: 120.00,
+      passengerName: "Jane Smith",
+      charges: ["Bus Fare", "Luggage"],
+    ),
+    Ticket(
+      id: 5,
+      routeFrom: "Harare",
+      routeTo: "Beitbridge",
+      ticketID: "TKT-001-000-05",
+      amount: 15.00,
+      passengerName: "Linda Makoni",
+      charges: ["Bus Fare"],
+    ),
+    Ticket(
+      id: 6,
+      routeFrom: "Beitbridge",
+      routeTo: "Port Elizabeth",
+      ticketID: "TKT-001-000-06",
+      amount: 140.00,
+      passengerName: "Brian Chisamba",
+      charges: ["Bus Fare", "Luggage"],
+    ),
+    Ticket(
+      id: 7,
+      routeFrom: "Gumtree",
+      routeTo: "Port Elizabeth",
+      ticketID: "TKT-001-000-7",
+      amount: 20.00,
+      passengerName: "Cecilia Mupfumi",
+      charges: ["Bus Fare"],
+    ),
+    Ticket(
+      id: 8,
+      routeFrom: "Harare",
+      routeTo: "Port Elizabeth",
+      ticketID: "TKT-001-000-8",
+      amount: 180.00,
+      passengerName: "Thabo Moyo",
+      charges: ["Bus Fare"],
+    ),
+    Ticket(
+      id: 9,
+      routeFrom: "Beitbridge",
+      routeTo: "Johannesburg",
+      ticketID: "TKT-001-000-9",
+      amount: 50.00,
+      passengerName: "Moses Chiwanga",
+      charges: ["Bus Fare", "Luggage"],
+    ),
+    Ticket(
+      id: 10,
+      routeFrom: "Johannesburg",
+      routeTo: "Port Elizabeth",
+      ticketID: "TKT-001-000-10",
+      amount: 120.00,
+      passengerName: "Nomsa Moyo",
+      charges: ["Bus Fare"],
+    ),
+  ];
+}
+
+List<Expenses> testingExpense() {
+  return [
+    Expenses("Fuel - Harare to Port Elizabeth", 1500.00, 1, "EXP-0000001"),
+    Expenses("Toll Fees - Harare to Port Elizabeth", 200.00, 2, "EXP-0000002"),
+    Expenses(
+      "Driver Salary - Harare to Port Elizabeth",
+      500.00,
+      3,
+      "EXP-0000003",
+    ),
+    Expenses("Maintenance - Bus Cleaning", 100.00, 4, "EXP-0000004"),
+    Expenses("Insurance - Bus Insurance Premium", 300.00, 5, "EXP-0000005"),
+    Expenses("Accommodation - Driver Accommodation", 200.00, 6, "EXP-0000006"),
+    Expenses("Food - Driver Meals", 100.00, 7, "EXP-0000007"),
+    Expenses("Bus Repair - Tyre Replacement", 500.00, 8, "EXP-0000008"),
+    Expenses("Licensing - Bus License Renewal", 200.00, 9, "EXP-0000009"),
+    Expenses("Other - Miscellaneous", 100.00, 10, "EXP-0000010"),
+  ];
+}
+import 'package:flutter/material.dart';
+
+class ToolbarBottom extends StatelessWidget {
+  const ToolbarBottom({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    
+    return Container(
+      height: 1.0,
+      color: Theme.of(context).colorScheme.tertiary,
+    );
+  }
+}import 'dart:convert'; // Required to handle the List<String> conversion
+
+class Ticket {
+  final int? id; // Nullable because the Database assigns the ID, not us
+  final String routeFrom;
+  final String routeTo;
+  final String ticketID;
+  final double amount;
+  final String passengerName;
+  final String passengerPhone;
+  final List<String> charges;
+
+  Ticket({
+    this.id, // Changed to optional
+    required this.routeFrom,
+    required this.routeTo,
+    required this.ticketID,
+    required this.amount,
+    required this.passengerName,
+    this.passengerPhone = "",
+    required this.charges,
+  });
+
+  // 1. Convert a Ticket object into a Map object (for SQL INSERT)
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'route_from': routeFrom, // Using snake_case for database columns is standard
+      'route_to': routeTo,
+      'ticket_id': ticketID,
+      'amount': amount,
+      'passenger_name': passengerName,
+      'passenger_phone': passengerPhone,
+      // SQL cannot store a List directly, so we convert it to a JSON String
+      'charges': jsonEncode(charges), 
+    };
+  }
+
+  // 2. Extract a Ticket object from a Map object (for SQL SELECT)
+  factory Ticket.fromMap(Map<String, dynamic> map) {
+    return Ticket(
+      id: map['id'] as int?,
+      routeFrom: map['route_from'] ?? '',
+      routeTo: map['route_to'] ?? '',
+      ticketID: map['ticket_id'] ?? '',
+      amount: (map['amount'] as num).toDouble(), // Safely handle int or double from DB
+      passengerName: map['passenger_name'] ?? '',
+      passengerPhone: map['passenger_phone'] ?? '',
+      // Convert the JSON String back into a List<String>
+      charges: map['charges'] != null 
+          ? List<String>.from(jsonDecode(map['charges'])) 
+          : [],
+    );
+  }
+}
+
+class Expenses {
+  final int? id; // Database Primary Key
+  final String name;
+  final double totalAmount;
+  final int expenseNumber;
+  final String expenseID;
+
+  Expenses({
+    this.id,
+    required this.name, 
+    required this.totalAmount, 
+    required this.expenseNumber, 
+    required this.expenseID
+  });
+
+  // 1. To Map (For Database)
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'total_amount': totalAmount,
+      'expense_number': expenseNumber,
+      'expense_id': expenseID,
+    };
+  }
+
+  // 2. From Map (From Database)
+  factory Expenses.fromMap(Map<String, dynamic> map) {
+    return Expenses(
+      id: map['id'] as int?,
+      name: map['name'] ?? '',
+      totalAmount: (map['total_amount'] as num).toDouble(),
+      expenseNumber: map['expense_number'] ?? 0,
+      expenseID: map['expense_id'] ?? '',
+    );
+  }
+}import 'package:mirah_coaches/pages/my_app.dart';
+import 'package:mirah_coaches/view_models/balancing_view_model.dart';
+import 'package:mirah_coaches/view_models/home_view_model.dart';
+import 'package:provider/provider.dart';
+
+MultiProvider multiProvider() {
+  return MultiProvider(
+    providers: [
+      ChangeNotifierProvider(create: (_) => HomeViewModel()),
+      ChangeNotifierProvider(create: (_) => BalancingViewModel()),
+    ],
+    child: MyApp(),
+  );
+}
+import 'package:flutter/material.dart';
+
+
+const Color brandBlue = Color(0xFF003366); // Deep Navy Blue
+const Color brandRed = Color(0xFFCC0000); // Vibrant Bus Stripe Red
+const Color brandWhite = Color(0xFFFFFFFF);
+
+ThemeData appTheme() {
+  return ThemeData(
+    colorScheme: ColorScheme(
+      brightness: Brightness.light,
+      primary: brandBlue,
+      onPrimary: brandWhite,
+      secondary: brandRed,
+      onSecondary: brandWhite,
+      error: Colors.red,
+      onError: brandWhite,
+      surface: Colors.white,
+      onSurface: brandWhite,
+      tertiary: Colors.grey.shade500,
+    ),
+  );
+}
+
+import 'package:flutter/material.dart';
+
+class HomeViewModel extends ChangeNotifier{
+  int _currentIndex = 0;
+
+  int get currentIndex => _currentIndex;
+
+  void changeTab(int index){
+    _currentIndex = index;
+    notifyListeners();
+  }
+}import 'package:flutter/material.dart';
+import '../models/models.dart'; // Ensure this points to your updated SQL-ready models
+
+class BalancingViewModel extends ChangeNotifier {
+  // --- 1. EXISTING TAB LOGIC ---
+  int _currentIndex = 0;
+  int get currentIndex => _currentIndex;
+
+  // This matches your existing function name to keep things working
+  void balancingPage(int index) {
+    _currentIndex = index;
+    notifyListeners();
+  }
+
+  // --- 2. NEW FINANCIAL ENGINE ---
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
+  // Data Containers
+  List<Ticket> _fromTickets = [];
+  List<Ticket> _toTickets = [];
+  
+  List<Expenses> _fromExpenses = [];
+  List<Expenses> _toExpenses = [];
+
+  // --- 3. GETTERS (The Math) ---
+  
+  // -- OUTBOUND (Tab 0: FROM) --
+  List<Ticket> get fromTickets => _fromTickets;
+  List<Expenses> get fromExpenses => _fromExpenses;
+  
+  double get fromRevenue => _fromTickets.fold(0, (sum, item) => sum + item.amount);
+  double get fromExpenseTotal => _fromExpenses.fold(0, (sum, item) => sum + item.totalAmount);
+  double get fromNetProfit => fromRevenue - fromExpenseTotal;
+
+  // -- INBOUND (Tab 1: TO) --
+  List<Ticket> get toTickets => _toTickets;
+  List<Expenses> get toExpenses => _toExpenses;
+
+  double get toRevenue => _toTickets.fold(0, (sum, item) => sum + item.amount);
+  double get toExpenseTotal => _toExpenses.fold(0, (sum, item) => sum + item.totalAmount);
+  double get toNetProfit => toRevenue - toExpenseTotal;
+
+  // --- 4. ACTIONS (Loading Data) ---
+
+  void loadData() async {
+    _isLoading = true;
+    notifyListeners();
+
+    // SIMULATION: This is where we will hook up the SQL Database later.
+    // For now, we use dummy data so you can see the UI work.
+    await Future.delayed(const Duration(milliseconds: 500)); 
+
+    // Mock Data: From (e.g. Harare -> Masvingo)
+    _fromTickets = [
+      Ticket(id: 1, routeFrom: "Harare", routeTo: "Masvingo", ticketID: "TKT-01", amount: 20.0, passengerName: "Tawanda", charges: ["Fare"]),
+      Ticket(id: 2, routeFrom: "Harare", routeTo: "Masvingo", ticketID: "TKT-02", amount: 20.0, passengerName: "Sarah", charges: ["Fare"]),
+    ];
+
+    _fromExpenses = [
+      Expenses(name: "Fuel", totalAmount: 15.0, expenseNumber: 1, expenseID: "EXP-01"),
+    ];
+
+    // Mock Data: To (e.g. Masvingo -> Harare)
+    _toTickets = [
+      Ticket(id: 3, routeFrom: "Masvingo", routeTo: "Harare", ticketID: "TKT-03", amount: 20.0, passengerName: "Brian", charges: ["Fare"]),
+    ];
+
+    _toExpenses = [
+       Expenses(name: "Lunch", totalAmount: 5.0, expenseNumber: 3, expenseID: "EXP-03"),
+       Expenses(name: "Tollgate", totalAmount: 2.0, expenseNumber: 4, expenseID: "EXP-04"),
+    ];
+
+    _isLoading = false;
+    notifyListeners();
+  }
+}import 'package:flutter/material.dart';
+// ignore: unnecessary_import
+import 'package:flutter/services.dart';
+import 'package:mirah_coaches/pages/balancing_page.dart';
+import 'package:mirah_coaches/utils/main_page_tabs/dashboard_tab.dart';
+import 'package:mirah_coaches/utils/receipt_item.dart';
+import 'package:mirah_coaches/utils/ticket_widget.dart';
+import 'package:mirah_coaches/utils/validators.dart';
+import 'package:mirah_coaches/view_models/home_view_model.dart';
+import 'package:provider/provider.dart';
+
+import 'package:mirah_coaches/utils/testing_data/testing_data.dart';
+
+// ignore: unused_local_variable
+var textStyle = TextStyle(
+  color: Colors.white,
+  fontSize: 18,
+  fontWeight: FontWeight.normal,
+);
+
+// ignore: unused_local_variable
+var textStyleTitle = TextStyle(
+  color: Colors.white,
+  fontSize: 32,
+  fontWeight: FontWeight.bold,
+);
+
+// ignore: unused_local_variable
+var textStyleSubtitle = TextStyle(
+  color: Colors.white,
+  fontSize: 16,
+  fontWeight: FontWeight.bold,
+);
+
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 4, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final homeViewModel = Provider.of<HomeViewModel>(context);
+
+    ColorScheme appTheme = Theme.of(context).colorScheme;
+
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: appTheme.primary,
+        centerTitle: true,
+        leading: Container(
+          margin: const EdgeInsets.all(8.0),
+          child: Icon(
+            Icons.menu,
+            color: Theme.of(context).colorScheme.onPrimary,
+          ),
+        ),
+        title: const Text("Mirah Coaches"),
+        actions: [
+          Container(
+            padding: const EdgeInsets.all(8.0),
+            child: Icon(
+              Icons.notifications_none_rounded,
+              color: Theme.of(context).colorScheme.onPrimary,
+            ),
+          ),
+
+          Container(
+            padding: const EdgeInsets.all(8.0),
+            child: Icon(
+              Icons.more_vert_rounded,
+              color: Theme.of(context).colorScheme.onPrimary,
+            ),
+          ),
+        ],
+        bottom: TabBar(
+          onTap: (index) => homeViewModel.changeTab(index),
+          controller: _tabController,
+          tabs: [
+            getText("HOME"),
+            getText("TICKET"),
+            getText("PASSENGERS"),
+            getText("EXPENSES"),
+          ],
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          DashboardTab(),
+          TicketTab(),
+          PassengersTab(ticketsList: testingData()),
+          BalancingPage(),
+        ],
+      ),
+    );
+  }
+}
+
+class TicketTab extends StatelessWidget {
+  const TicketTab({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    var title = const TextStyle(
+      fontSize: 18.0,
+      fontWeight: FontWeight.w500,
+      color: Colors.black,
+    );
+    // ignore: unused_local_variable
+    var subTitle = const TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500);
+    final colorScheme = Theme.of(context).colorScheme;
+
+    // Define Input Decoration Style once to reuse
+    InputDecoration getDecor(String hint, IconData icon) {
+      return InputDecoration(
+        hintText: hint,
+        hintStyle: TextStyle(color: Colors.blueGrey, fontSize: 14.0),
+        prefixIcon: Icon(icon, size: 20, color: Colors.blueGrey),
+        filled: true,
+        fillColor: Colors.white,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10.0),
+          borderSide: BorderSide(color: Colors.blueGrey),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10.0),
+          borderSide: BorderSide(color: colorScheme.secondary),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10.0),
+          borderSide: BorderSide(color: colorScheme.error),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10.0),
+          borderSide: BorderSide(color: colorScheme.error),
+        ),
+      );
+    }
+
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Academic Information", style: title),
+                // PHONE
+                TextFormField(
+                  keyboardType: TextInputType.phone,
+                  decoration: getDecor("Enter passenger name...", Icons.person),
+                  style: TextStyle(color: Colors.black),
+                  // onChanged: vm.updateParentContact,
+                  validator: Validators.validateName, // ✅ Added Validator
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                ),
+
+                SizedBox(height: 16.0),
+
+                TextFormField(
+                  keyboardType: TextInputType.phone,
+                  decoration: getDecor(
+                    "Journey To...",
+                    Icons.subdirectory_arrow_right,
+                  ),
+                  style: TextStyle(color: Colors.black),
+                  // onChanged: vm.updateParentContact,
+                  validator: Validators.validateName, // ✅ Added Validator
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                ),
+
+                SizedBox(height: 16.0),
+
+                TextFormField(
+                  keyboardType: TextInputType.phone,
+                  decoration: getDecor(
+                    "Journey From...",
+                    Icons.subdirectory_arrow_left_rounded,
+                  ),
+                  style: TextStyle(color: Colors.black),
+                  // onChanged: vm.updateParentContact,
+                  validator: Validators.validateName, // ✅ Added Validator
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                ),
+
+                SizedBox(height: 16.0),
+
+                TextFormField(
+                  keyboardType: TextInputType.phone,
+                  decoration: getDecor("Bus Fare...", Icons.train),
+                  style: TextStyle(color: Colors.black),
+                  // onChanged: vm.updateParentContact,
+                  validator: Validators.validateName, // ✅ Added Validator
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                ),
+
+                SizedBox(height: 16.0),
+
+                TextFormField(
+                  keyboardType: TextInputType.phone,
+                  decoration: getDecor(
+                    "Laguage Fee...",
+                    Icons.business_center_sharp,
+                  ),
+                  style: TextStyle(color: Colors.black),
+                  // onChanged: vm.updateParentContact,
+                  validator: Validators.validateName, // ✅ Added Validator
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                ),
+
+                const SizedBox(height: 30),
+
+                // SUBMIT
+                ElevatedButton(
+                  onPressed: () async {},
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 56),
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: colorScheme.onPrimary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text("Print Receipt"),
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class PassengersTab extends StatelessWidget {
+  const PassengersTab({super.key, required this.ticketsList});
+
+  final List<Ticket> ticketsList;
+  @override
+  Widget build(BuildContext context) {
+    return //List Widget
+    CustomScrollView(
+      slivers: [
+        SliverList(
+          delegate: SliverChildBuilderDelegate((context, index) {
+            final ticket = ticketsList[index];
+            return TicketCard(ticket: ticket);
+          }, childCount: ticketsList.length),
+        ),
+      ],
+    );
+  }
+}
+
+class ExpensesTab extends StatelessWidget {
+  const ExpensesTab({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    List<Expenses> expensesList = testingExpense();
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              cartView(
+                [Color(0xff2196f3), Color(0xff003366)],
+                value: "\$200.50",
+                title: "Total Amount",
+              ),
+
+              
+            ],
+          ),
+        ),
+
+        SliverList(
+          delegate: SliverChildBuilderDelegate((context, index) {
+            final expense = expensesList[index];
+            return PaymentItem(expenses: expense);
+          }, childCount: expensesList.length),
+        ),
+      ],
+    );
+  }
+}
+
+Tab getText(final String value) {
+  return Tab(text: value);
+}
+
+BoxDecoration allGradientBoxes({
+  required List<Color> color,
+  required double radius,
+}) {
+  return BoxDecoration(
+    gradient: LinearGradient(
+      colors: color,
+      begin: Alignment.centerLeft,
+      end: Alignment.centerRight,
+    ),
+    borderRadius: BorderRadius.circular(radius),
+  );
+}
+
+class Expenses {
+  final String name; //Mostly on the journey
+  final double totalAmount;
+  final int expenseNumber;
+  final String expenseID; //EXP-0000000
+  Expenses(this.name, this.totalAmount, this.expenseNumber, this.expenseID);
+}
+
+import 'package:flutter/material.dart';
+
+class EvaluationPage extends StatelessWidget {
+  const EvaluationPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Placeholder();
+  }
+}
+import 'package:flutter/material.dart';
+import 'package:mirah_coaches/utils/receipt_item.dart';
+import 'package:mirah_coaches/utils/ticket_widget.dart';
+
+class ReceiptsPage extends StatelessWidget {
+  const ReceiptsPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final List<Ticket> dummyTickets = [
+      
+    ];
+    return Scaffold(
+      appBar: AppBar(
+        leading: Icon(Icons.arrow_back_rounded),
+        title: const Text('Receipts'),
+      ),
+
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Text("All the receipts"),
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.only(
+                  bottom: 16,
+                ), // Adds scrolling space at bottom
+                itemCount: dummyTickets.length,
+                itemBuilder: (context, index) {
+                  final ticket = dummyTickets[index];
+                  return TicketCard(ticket: ticket,
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+// lib/pages/balancing_page.dart
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../view_models/balancing_view_model.dart';
+import '../models/models.dart';
+import '../theme/theme.dart'; // Uncomment if you have a specific theme file
+
+class BalancingPage extends StatefulWidget {
+  const BalancingPage({super.key});
+
+  @override
+  State<BalancingPage> createState() => _BalancingPageState();
+}
+
+class _BalancingPageState extends State<BalancingPage> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    
+    // Auto-load data when page opens
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<BalancingViewModel>().loadData();
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final vm = context.watch<BalancingViewModel>();
+    // final theme = Theme.of(context); // valid if using theme
+
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF003366), // Brand Blue
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text("Journey Summary", style: TextStyle(color: Colors.white)),
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorColor: const Color(0xFFCC0000), // Brand Red
+          indicatorWeight: 3,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.grey.shade400,
+          tabs: const [
+            Tab(text: "OUTBOUND (From)"),
+            Tab(text: "INBOUND (To)"),
+          ],
+        ),
+      ),
+      body: vm.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : TabBarView(
+              controller: _tabController,
+              children: [
+                // TAB 1: FROM
+                TripBalanceSheet(
+                  tickets: vm.fromTickets,
+                  expenses: vm.fromExpenses,
+                  revenue: vm.fromRevenue,
+                  expenseTotal: vm.fromExpenseTotal,
+                  netProfit: vm.fromNetProfit,
+                  routeTitle: "Harare to Masvingo",
+                ),
+                // TAB 2: TO
+                TripBalanceSheet(
+                  tickets: vm.toTickets,
+                  expenses: vm.toExpenses,
+                  revenue: vm.toRevenue,
+                  expenseTotal: vm.toExpenseTotal,
+                  netProfit: vm.toNetProfit,
+                  routeTitle: "Masvingo to Harare",
+                ),
+              ],
+            ),
+    );
+  }
+}
+
+// --- REUSABLE WIDGET: The Trip Balance Sheet ---
+class TripBalanceSheet extends StatelessWidget {
+  final List<Ticket> tickets;
+  final List<Expenses> expenses;
+  final double revenue;
+  final double expenseTotal;
+  final double netProfit;
+  final String routeTitle;
+
+  const TripBalanceSheet({
+    super.key,
+    required this.tickets,
+    required this.expenses,
+    required this.revenue,
+    required this.expenseTotal,
+    required this.netProfit,
+    required this.routeTitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomScrollView(
+      slivers: [
+        // 1. SUMMARY CARD (The "Cash Available" Logic)
+        SliverToBoxAdapter(
+          child: Container(
+            margin: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF003366), Color(0xFF0055AA)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: const [
+                BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 5)),
+              ],
+            ),
+            child: Column(
+              children: [
+                Text(routeTitle, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+                const SizedBox(height: 12),
+                
+                // MAIN NUMBER: CASH AVAILABLE
+                const Text("CASH AVAILABLE", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                Text(
+                  "\$${netProfit.toStringAsFixed(2)}",
+                  style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold),
+                ),
+                
+                const Divider(color: Colors.white24, height: 24),
+                
+                // BREAKDOWN
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // REVENUE SIDE
+                    _miniStat("Total Tickets", revenue, Colors.greenAccent),
+                    
+                    // SEPARATOR
+                    Container(width: 1, height: 30, color: Colors.white24),
+
+                    // EXPENSE SIDE
+                    _miniStat("Total Expenses", expenseTotal, const Color(0xFFFF8A80)), // Lighter Red for visibility
+                  ],
+                )
+              ],
+            ),
+          ),
+        ),
+
+        // 2. REVENUE HEADER
+        _sectionHeader(context, "Passenger Revenue", Icons.confirmation_number_outlined),
+
+        // 3. TICKET LIST
+        tickets.isEmpty 
+          ? _emptyState("No passengers yet")
+          : SliverList(
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final t = tickets[index];
+                return _SimpleListTile(
+                  title: t.passengerName,
+                  subtitle: t.ticketID,
+                  amount: t.amount,
+                  isPositive: true,
+                );
+              }, childCount: tickets.length),
+            ),
+
+        // 4. EXPENSES HEADER
+        _sectionHeader(context, "Trip Expenses", Icons.receipt_long_outlined),
+
+        // 5. EXPENSE LIST
+        expenses.isEmpty 
+          ? _emptyState("No expenses recorded")
+          : SliverList(
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final e = expenses[index];
+                return _SimpleListTile(
+                  title: e.name,
+                  subtitle: "#${e.expenseNumber}",
+                  amount: e.totalAmount,
+                  isPositive: false,
+                );
+              }, childCount: expenses.length),
+            ),
+            
+        // Bottom Padding
+        const SliverToBoxAdapter(child: SizedBox(height: 50)),
+      ],
+    );
+  }
+
+  Widget _miniStat(String label, double value, Color color) {
+    return Column(
+      children: [
+        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+        const SizedBox(height: 4),
+        Text(
+          "\$${value.toStringAsFixed(2)}", 
+          style: TextStyle(color: color, fontSize: 18, fontWeight: FontWeight.bold)
+        ),
+      ],
+    );
+  }
+
+  Widget _sectionHeader(BuildContext context, String title, IconData icon) {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: Colors.grey.shade600),
+            const SizedBox(width: 8),
+            Text(title, style: TextStyle(color: Colors.grey.shade800, fontWeight: FontWeight.bold, fontSize: 16)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _emptyState(String text) {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Center(child: Text(text, style: const TextStyle(color: Colors.grey))),
+      ),
+    );
+  }
+}
+
+// --- REUSABLE TILE FOR ITEMS ---
+class _SimpleListTile extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final double amount;
+  final bool isPositive;
+
+  const _SimpleListTile({
+    required this.title,
+    required this.subtitle,
+    required this.amount,
+    required this.isPositive,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                Text(subtitle, style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+              ],
+            ),
+          ),
+          Text(
+            "${isPositive ? '+' : '-'} \$${amount.toStringAsFixed(2)}",
+            style: TextStyle(
+              color: isPositive ? const Color(0xFF003366) : const Color(0xFFCC0000), // Brand Colors
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+import 'package:flutter/material.dart';
+
+class CreateReceiptPage extends StatelessWidget {
+  const CreateReceiptPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Placeholder();
+  }
+}import 'package:flutter/material.dart';
+import 'package:mirah_coaches/pages/balancing_page.dart';
+import 'package:mirah_coaches/theme/theme.dart';
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  // This widget is the root of your application.
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: "",
+      theme: appTheme(),
+      home: BalancingPage(
+        
+      ),
+    );
+  }
+}
